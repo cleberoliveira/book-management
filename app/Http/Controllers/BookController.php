@@ -81,14 +81,10 @@ class BookController extends Controller
     public function destroy(Book $book)
     {
         try {
-            // Verificar relacionamentos antes de excluir
-            if ($book->hasRelatedRecords()) {
-                return back()->with('error', 'Não é possível excluir este livro pois possui registros relacionados.');
-            }
-
             $book->delete();
             return redirect()->route('books.index')->with('success', self::MESSAGES['deleted']);
         } catch (\Exception $e) {
+            \Log::error('Erro ao excluir livro: ' . $e->getMessage());
             return back()->with('error', 'Erro ao excluir livro: ' . $e->getMessage());
         }
     }
