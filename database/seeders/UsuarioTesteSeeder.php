@@ -14,11 +14,22 @@ class UsuarioTesteSeeder extends Seeder
      */
     public function run(): void
     {
-        User::updateOrCreate([
-            'email' => 'demo@demo.com'
-        ], [
-            'name' => 'Demo User',
-            'password' => Hash::make('1234')
-        ]);
+        User::updateOrCreate(
+            ['email' => 'admin@demo.com'],
+            [
+                'name' => 'Admin User',
+                'password' => Hash::make('1234'),
+                'is_admin' => true
+            ]
+        );
+
+        User::updateOrCreate(
+            ['email' => 'user@demo.com'],
+            [
+                'name' => 'Normal User',
+                'password' => Hash::make('1234'),
+                'is_admin' => false
+            ]
+        );
     }
 }
