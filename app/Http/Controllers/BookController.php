@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Book;
 use App\Models\Author;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Intervention\Image\ImageManager;
+use Intervention\Image\Drivers\Gd\Driver;
 
 class BookController extends Controller
 {
@@ -33,13 +36,33 @@ class BookController extends Controller
     public function store(Request $request)
     {
         try {
-            $data = $request->validate([
+            $request->validate([
                 'titulo'         => 'required|string|max:255',
                 'descricao'      => 'required|string',
                 'data_publicacao'=> 'required|date',
                 'author_id'      => 'required|exists:authors,id',
+                'imagem_capa'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ], [
+                'imagem_capa.max' => 'A imagem da capa não pode ser maior que 2MB.',
+                'imagem_capa.mimes' => 'A imagem da capa deve ser do tipo JPG ou PNG.'
             ]);
-            
+
+            if ($request->hasFile('imagem_capa')) {
+                $capa = $request->file('imagem_capa');
+                $manager = new ImageManager(new Driver());
+                $filename = time().'_'.uniqid().'.'.$capa->getClientOriginalExtension();
+
+                $image = $manager->read($capa)
+                    ->resize(200, 200, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode();
+
+                Storage::disk('public')->put('capas/'.$filename, $image);
+                $data['imagem_capa'] = 'capas/'.$filename;
+            }
+
             Book::create($data);
             return redirect()->route('books.index')->with('success', self::MESSAGES['created']);
         } catch (\Exception $e) {
@@ -64,12 +87,38 @@ class BookController extends Controller
     public function update(Request $request, Book $book)
     {
         try {
-            $data = $request->validate([
+            $request->validate([
                 'titulo'         => 'required|string|max:255',
                 'descricao'      => 'required|string',
                 'data_publicacao'=> 'required|date',
                 'author_id'      => 'required|exists:authors,id',
+                'imagem_capa'    => 'nullable|image|mimes:jpg,jpeg,png|max:2048',
+            ], [
+                'imagem_capa.max' => 'A imagem da capa não pode ser maior que 2MB.',
+                'imagem_capa.mimes' => 'A imagem da capa deve ser do tipo JPG ou PNG.'
             ]);
+
+            if ($request->hasFile('imagem_capa')) {
+                // Opcional: remover a imagem antiga, se existir
+                if ($book->imagem_capa && Storage::disk('public')->exists($book->imagem_capa)) {
+                    Storage::disk('public')->delete($book->imagem_capa);
+                }
+
+                $capa = $request->file('imagem_capa');
+                $manager = new ImageManager(new Driver());
+                $filename = time().'_'.uniqid().'.'.$capa->getClientOriginalExtension();
+
+                $image = $manager->read($capa)
+                    ->resize(200, 200, function ($constraint) {
+                        $constraint->aspectRatio();
+                        $constraint->upsize();
+                    })
+                    ->encode();
+
+                Storage::disk('public')->put('capas/'.$filename, $image);
+                $data['imagem_capa'] = 'capas/'.$filename;
+            }
+
             $book->update($data);
             return redirect()->route('books.index')->with('success', self::MESSAGES['updated']);
         } catch (\Exception $e) {

@@ -8,6 +8,11 @@
 <body>
 <div class="container mt-4">
     <h1>Detalhes do Livro</h1>
+    @if($book->imagem_capa)
+        <div class="mb-3">
+            <img src="{{ asset($book->imagem_capa) }}" alt="Capa do Livro" width="200" height="200">
+        </div>
+    @endif
     <p><strong>Título:</strong> {{ $book->titulo }}</p>
     <p><strong>Descrição:</strong> {{ $book->descricao }}</p>
     <p><strong>Data de Publicação:</strong> {{ $book->data_publicacao }}</p>

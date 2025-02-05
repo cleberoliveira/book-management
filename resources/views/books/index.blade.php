@@ -53,6 +53,7 @@
                 <td>{{ $book->author->nome ?? 'N/A' }}</td>
                 <td>{{ $book->data_publicacao }}</td>
                 <td>
+                    <a href="{{ route('books.show', $book) }}" class="btn btn-sm btn-info">Ver</a>
                     <a href="{{ route('books.edit', $book) }}" class="btn btn-sm btn-warning">Editar</a>
                     <form action="{{ route('books.destroy', $book) }}" method="POST" class="d-inline">
                         @csrf

@@ -19,7 +19,7 @@
         </div>
     @endif
 
-    <form action="{{ route('books.store') }}" method="post">
+    <form action="{{ route('books.store') }}" method="post" enctype="multipart/form-data">
         @csrf
         <div class="mb-3">
             <label for="titulo" class="form-label">Título</label>
@@ -43,6 +43,19 @@
                     </option>
                 @endforeach
             </select>
+        </div>
+        <div class="mb-3">
+            <label for="imagem_capa" class="form-label">Imagem de Capa (JPG, PNG - Máximo 2MB)</label>
+            <input type="file" 
+                   name="imagem_capa" 
+                   class="form-control" 
+                   accept="image/jpeg, image/png"
+                   max="2097152"> <!-- 2MB em bytes -->
+            @if($book->imagem_capa)
+                <div class="mt-2">
+                    <img src="{{ asset($book->imagem_capa) }}" alt="Capa do Livro" width="100" height="100">
+                </div>
+            @endif
         </div>
         <button type="submit" class="btn btn-success">Criar Livro</button>
         <a href="{{ route('books.index') }}" class="btn btn-secondary">Voltar</a>
