@@ -8,6 +8,12 @@ use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
+    public function __construct()
+    {
+        // Apenas administradores podem acessar todos os métodos deste controller
+        $this->middleware('is_admin');
+    }
+
     // Exibe todos os autores
     public function index()
     {
@@ -15,7 +21,7 @@ class AuthorController extends Controller
         return response()->json($authors);
     }
 
-    // Cria um novo autor
+    // Cria um novo autor (acessível apenas para administradores)
     public function store(Request $request)
     {
         $data = $request->validate([
@@ -34,7 +40,7 @@ class AuthorController extends Controller
         return response()->json($author);
     }
 
-    // Atualiza os dados de um autor
+    // Atualiza os dados de um autor (acessível apenas para administradores)
     public function update(Request $request, Author $author)
     {
         $data = $request->validate([
@@ -47,7 +53,7 @@ class AuthorController extends Controller
         return response()->json($author);
     }
 
-    // Exclui um autor, se não possuir livros associados
+    // Exclui um autor, se não possuir livros associados (acessível apenas para administradores)
     public function destroy(Author $author)
     {
         if ($author->books()->count() > 0) {
@@ -63,7 +69,7 @@ class AuthorController extends Controller
     // Retorna os livros associados a um autor
     public function books(Author $author)
     {
-        $books = $author->books; // relaicona definido no model
+        $books = $author->books;
         return response()->json($books);
     }
 }

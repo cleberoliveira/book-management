@@ -12,9 +12,9 @@ Route::post('login', [AuthController::class, 'login']);
 Route::post('logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
 
 /*
- * Rotas Protegidas da API
+ * Rotas Protegidas da API para administradores
  */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware(['auth:sanctum', 'is_admin'])->group(function () {
     Route::apiResource('authors', AuthorController::class);
     Route::get('authors/{author}/books', [AuthorController::class, 'books']);
 });
