@@ -1,74 +1,96 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Gerenciamento de Livros</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-</head>
-<body>
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1 class="mb-0">Lista de Livros</h1>
-        <div class="d-flex gap-2">
+@extends('layouts.app')
+
+@section('title', 'Lista de Livros')
+
+@section('content')
+<div class="card">
+    <div class="card-header bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="h3 mb-0">📚 Lista de Livros</h1>
             <a href="{{ route('books.create') }}" class="btn btn-primary">
-                <i class="bi bi-plus-lg"></i> Adicionar Livro
+                <i class="bi bi-plus-lg"></i> Novo Livro
             </a>
         </div>
     </div>
-
-    @if(session('success'))
-        <div class="alert alert-success alert-dismissible fade show" role="alert">
-            {{ session('success') }}
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-        </div>
-    @endif
-
-    @if($errors->any())
-        <div class="alert alert-danger alert-dismissible fade show" role="alert">
-            <ul class="mb-0">
-                @foreach($errors->all() as $error)
-                    <li>{{ $error }}</li>
-                @endforeach
-            </ul>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Fechar"></button>
-        </div>
-    @endif
-
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>ID</th>
-                <th>Título</th>
-                <th>Autor</th>
-                <th>Data de Publicação</th>
-                <th>Ações</th>
-            </tr>
-        </thead>
-        <tbody>
-            @forelse($books as $book)
-            <tr>
-                <td>{{ $book->id }}</td>
-                <td>{{ $book->titulo }}</td>
-                <td>{{ $book->author->nome ?? 'N/A' }}</td>
-                <td>{{ $book->data_publicacao }}</td>
-                <td>
-                    <a href="{{ route('books.show', $book) }}" class="btn btn-sm btn-info">Ver</a>
-                    <a href="{{ route('books.edit', $book) }}" class="btn btn-sm btn-warning">Editar</a>
-                    <form action="{{ route('books.destroy', $book) }}" method="POST" class="d-inline">
-                        @csrf
-                        @method('DELETE')
-                        <button type="button" class="btn btn-sm btn-danger" onclick="if(confirm('Deseja realmente excluir este livro?')) { this.form.submit(); }">Excluir</button>
-                    </form>
-                </td>
-            </tr>
-            @empty
-            <tr>
-                <td colspan="5">Nenhum livro cadastrado.</td>
-            </tr>
-            @endforelse
-        </tbody>
-    </table>
+    <div class="card-body">
+        @if($books->isEmpty())
+            <div class="text-center py-5">
+                <i class="bi bi-book display-1 text-muted"></i>
+                <p class="h4 mt-3 text-muted">Nenhum livro cadastrado</p>
+                <a href="{{ route('books.create') }}" class="btn btn-primary mt-3">
+                    <i class="bi bi-plus-lg"></i> Adicionar Primeiro Livro
+                </a>
+            </div>
+        @else
+            <div class="table-responsive">
+                <table class="table table-hover align-middle">
+                    <thead>
+                        <tr>
+                            <th>📸 Capa</th>
+                            <th>📖 Título</th>
+                            <th>✍️ Autor</th>
+                            <th>📅 Publicação</th>
+                            <th>🔧 Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach($books as $book)
+                        <tr>
+                            <td width="80">
+                                @if($book->imagem_capa)
+                                    <img src="{{ asset('storage/' . $book->imagem_capa) }}" 
+                                         alt="Capa do livro {{ $book->titulo }}" 
+                                         class="img-thumbnail" 
+                                         style="width: 50px; height: 50px; object-fit: cover">
+                                @else
+                                    <div class="img-thumbnail d-flex align-items-center justify-content-center bg-light" 
+                                         style="width: 50px; height: 50px">
+                                        <x-book-cover-placeholder />
+                                    </div>
+                                @endif
+                            </td>
+                            <td>{{ $book->titulo }}</td>
+                            <td>{{ $book->author->nome ?? 'N/A' }}</td>
+                            <td>{{ \Carbon\Carbon::parse($book->data_publicacao)->format('d/m/Y') }}</td>
+                            <td>
+                                <div class="btn-group">
+                                    <a href="{{ route('books.show', $book) }}" 
+                                       class="btn btn-sm btn-outline-primary">
+                                        <i class="bi bi-eye"></i>
+                                    </a>
+                                    <a href="{{ route('books.edit', $book) }}" 
+                                       class="btn btn-sm btn-outline-warning">
+                                        <i class="bi bi-pencil"></i>
+                                    </a>
+                                    <button type="button" 
+                                            class="btn btn-sm btn-outline-danger"
+                                            onclick="confirmarExclusao({{ $book->id }})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                    <form id="form-delete-{{ $book->id }}"
+                                          action="{{ route('books.destroy', $book) }}" 
+                                          method="POST" class="d-none">
+                                        @csrf
+                                        @method('DELETE')
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        @endif
+    </div>
 </div>
-</body>
-</html>
+
+@push('scripts')
+<script>
+function confirmarExclusao(id) {
+    if (confirm('❌ Deseja realmente excluir este livro?')) {
+        document.getElementById('form-delete-' + id).submit();
+    }
+}
+</script>
+@endpush
+@endsection

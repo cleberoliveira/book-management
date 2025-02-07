@@ -6,9 +6,6 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     */
     public function up(): void
     {
         Schema::create('books', function (Blueprint $table) {
@@ -17,18 +14,15 @@ return new class extends Migration
             $table->text('descricao');
             $table->date('data_publicacao');
             $table->unsignedBigInteger('author_id');
+            $table->string('imagem_capa')->nullable();
             $table->timestamps();
 
-            // Restrição para garantir integridade referencial
-            $table->foreign('author_id')->references('id')->on('authors')->onDelete('cascade');
+            $table->foreign('author_id')->references('id')->on('authors');
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::dropIfExists('books');
     }
-};
+}; 

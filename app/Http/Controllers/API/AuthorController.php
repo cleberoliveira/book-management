@@ -17,21 +17,18 @@ class AuthorController extends Controller
     // Exibe todos os autores
     public function index()
     {
-        $authors = Author::all();
-        return response()->json($authors);
+        return response()->json(Author::all());
     }
 
     // Cria um novo autor (acessível apenas para administradores)
     public function store(Request $request)
     {
         $data = $request->validate([
-            'nome'   => 'required|string|max:255',
-            'estado' => 'required|string|max:50'
+            'nome' => 'required|string|max:255',
+            'ativo' => 'required|boolean'
         ]);
 
-        $author = Author::create($data);
-
-        return response()->json($author, 201);
+        return response()->json(Author::create($data), 201);
     }
 
     // Exibe um autor específico
@@ -44,32 +41,28 @@ class AuthorController extends Controller
     public function update(Request $request, Author $author)
     {
         $data = $request->validate([
-            'nome'   => 'sometimes|required|string|max:255',
-            'estado' => 'sometimes|required|string|max:50'
+            'nome' => 'sometimes|required|string|max:255',
+            'ativo' => 'sometimes|required|boolean'
         ]);
 
         $author->update($data);
-
         return response()->json($author);
     }
 
     // Exclui um autor, se não possuir livros associados (acessível apenas para administradores)
     public function destroy(Author $author)
     {
-        if ($author->books()->count() > 0) {
-            return response()->json([
-                'error' => 'Não é permitido eliminar um autor que possua livros associados.'
-            ], 409);
+        if ($author->books()->exists()) {
+            return response()->json(['error' => 'Autor possui livros associados'], 409);
         }
 
         $author->delete();
-        return response()->json(['message' => 'Autor removido com sucesso']);
+        return response()->json(null, 204);
     }
 
     // Retorna os livros associados a um autor
     public function books(Author $author)
     {
-        $books = $author->books;
-        return response()->json($books);
+        return response()->json($author->books);
     }
 }

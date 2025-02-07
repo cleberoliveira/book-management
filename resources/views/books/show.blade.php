@@ -1,23 +1,47 @@
-<!DOCTYPE html>
-<html>
-<head>
-    <meta charset="utf-8">
-    <title>Detalhes do Livro</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
-</head>
-<body>
-<div class="container mt-4">
-    <h1>Detalhes do Livro</h1>
-    @if($book->imagem_capa)
-        <div class="mb-3">
-            <img src="{{ asset($book->imagem_capa) }}" alt="Capa do Livro" width="200" height="200">
+@extends('layouts.app')
+
+@section('title', 'Detalhes do Livro')
+
+@section('content')
+<div class="card">
+    <div class="card-header">
+        <h1 class="card-title">Detalhes do Livro</h1>
+    </div>
+    <div class="card-body">
+        <div class="row">
+            @if($book->imagem_capa)
+                <div class="col-md-4 mb-3">
+                    <img src="{{ asset('storage/' . $book->imagem_capa) }}" 
+                         alt="Capa do livro {{ $book->titulo }}" 
+                         class="img-fluid rounded">
+                </div>
+            @else
+                <div class="col-md-4 mb-3">
+                    <div class="rounded bg-light d-flex align-items-center justify-content-center" 
+                         style="height: 300px">
+                        <x-book-cover-placeholder />
+                    </div>
+                </div>
+            @endif
+            <div class="col">
+                <dl class="row">
+                    <dt class="col-sm-3">Título</dt>
+                    <dd class="col-sm-9">{{ $book->titulo }}</dd>
+
+                    <dt class="col-sm-3">Descrição</dt>
+                    <dd class="col-sm-9">{{ $book->descricao }}</dd>
+
+                    <dt class="col-sm-3">Data de Publicação</dt>
+                    <dd class="col-sm-9">{{ $book->data_publicacao }}</dd>
+
+                    <dt class="col-sm-3">Autor</dt>
+                    <dd class="col-sm-9">{{ $book->author->nome }}</dd>
+                </dl>
+            </div>
         </div>
-    @endif
-    <p><strong>Título:</strong> {{ $book->titulo }}</p>
-    <p><strong>Descrição:</strong> {{ $book->descricao }}</p>
-    <p><strong>Data de Publicação:</strong> {{ $book->data_publicacao }}</p>
-    <p><strong>Autor:</strong> {{ $book->author->nome }}</p>
-    <a href="{{ route('books.index') }}" class="btn btn-secondary">Voltar</a>
+        <div class="mt-3">
+            <a href="{{ route('books.index') }}" class="btn btn-secondary">Voltar</a>
+        </div>
+    </div>
 </div>
-</body>
-</html>
+@endsection

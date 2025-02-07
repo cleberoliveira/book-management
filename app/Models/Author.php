@@ -10,7 +10,11 @@ class Author extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['nome', 'estado'];
+    protected $fillable = ['nome', 'ativo'];
+    
+    protected $casts = [
+        'ativo' => 'boolean',
+    ];
 
     public function books()
     {

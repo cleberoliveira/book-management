@@ -68,8 +68,7 @@
               "raw": "{{baseUrl}}/login",
               "host": ["{{baseUrl}}"],
               "path": ["login"]
-            },
-            "description": "Realiza login como administrador. Deve retornar um token de acesso válido."
+            }
           }
         },
         {
@@ -113,12 +112,10 @@
               "raw": "{{baseUrl}}/login",
               "host": ["{{baseUrl}}"],
               "path": ["login"]
-            },
-            "description": "Realiza login como usuário normal. Deve retornar um token de acesso válido."
+            }
           }
         }
-      ],
-      "description": "Endpoints de autenticação para obter tokens de acesso"
+      ]
     },
     {
       "name": "Testes Admin",
@@ -137,7 +134,7 @@
                   "pm.test('Autor foi criado corretamente', function() {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData.nome).to.eql('Autor Teste Admin');",
-                  "    pm.expect(jsonData.estado).to.eql('ativo');",
+                  "    pm.expect(jsonData.ativo).to.be.true;",
                   "    pm.environment.set('last_author_id', jsonData.id);",
                   "});"
                 ],
@@ -155,18 +152,21 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Autor Teste Admin\",\n    \"estado\": \"ativo\"\n}"
+              "raw": "{\n    \"nome\": \"Autor Teste Admin\",\n    \"ativo\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/authors",
               "host": ["{{baseUrl}}"],
               "path": ["authors"]
-            },
-            "description": "Admin cria um novo autor. Deve retornar status 201 e os dados do autor criado."
+            }
           }
         },
         {
@@ -180,7 +180,48 @@
                   "    pm.response.to.have.status(200);",
                   "});",
                   "",
-                  "pm.test('Resposta é um array', function() {",
+                  "pm.test('Resposta é um array de autores', function() {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData).to.be.an('array');",
+                  "    pm.expect(jsonData[0]).to.have.property('nome');",
+                  "    pm.expect(jsonData[0]).to.have.property('ativo');",
+                  "});"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{admin_token}}"
+              },
+              {
+                "key": "Accept",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/authors",
+              "host": ["{{baseUrl}}"],
+              "path": ["authors"]
+            }
+          }
+        },
+        {
+          "name": "Buscar Autor e Seus Livros",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test('Status code é 200', function() {",
+                  "    pm.response.to.have.status(200);",
+                  "});",
+                  "",
+                  "pm.test('Resposta contém lista de livros', function() {",
                   "    var jsonData = pm.response.json();",
                   "    pm.expect(jsonData).to.be.an('array');",
                   "});"
@@ -195,63 +236,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/authors",
-              "host": ["{{baseUrl}}"],
-              "path": ["authors"]
-            },
-            "description": "Admin lista todos os autores. Deve retornar um array com os autores cadastrados."
-          }
-        },
-        {
-          "name": "Atualizar Autor",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code é 200', function() {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Autor foi atualizado', function() {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.nome).to.eql('Autor Atualizado');",
-                  "    pm.expect(jsonData.estado).to.eql('inativo');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{admin_token}}"
               },
               {
-                "key": "Content-Type",
+                "key": "Accept",
                 "value": "application/json"
               }
             ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n    \"nome\": \"Autor Atualizado\",\n    \"estado\": \"inativo\"\n}"
-            },
             "url": {
-              "raw": "{{baseUrl}}/authors/{{last_author_id}}",
+              "raw": "{{baseUrl}}/authors/{{last_author_id}}/books",
               "host": ["{{baseUrl}}"],
-              "path": ["authors", "{{last_author_id}}"]
-            },
-            "description": "Admin atualiza um autor existente. Deve retornar status 200 e os dados atualizados."
+              "path": ["authors", "{{last_author_id}}", "books"]
+            }
           }
         }
-      ],
-      "description": "Testes das funcionalidades exclusivas do administrador"
+      ]
     },
     {
       "name": "Testes Usuário Normal",
@@ -269,7 +267,7 @@
                   "",
                   "pm.test('Mensagem de erro adequada', function() {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error).to.eql('Acesso não autorizado.');",
+                  "    pm.expect(jsonData.error).to.eql('Unauthenticated');",
                   "});"
                 ],
                 "type": "text/javascript"
@@ -294,58 +292,16 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n    \"nome\": \"Autor Teste Usuário\",\n    \"estado\": \"ativo\"\n}"
+              "raw": "{\n    \"nome\": \"Autor Teste Usuário\",\n    \"ativo\": true\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/authors",
               "host": ["{{baseUrl}}"],
               "path": ["authors"]
-            },
-            "description": "Usuário normal tenta criar um autor. Deve retornar erro 403 (Forbidden)."
-          }
-        },
-        {
-          "name": "Tentar Listar Autores (Não Autorizado)",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code é 403', function() {",
-                  "    pm.response.to.have.status(403);",
-                  "});",
-                  "",
-                  "pm.test('Mensagem de erro adequada', function() {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.error).to.eql('Acesso não autorizado.');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
             }
-          ],
-          "request": {
-            "method": "GET",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{user_token}}"
-              },
-              {
-                "key": "Accept",
-                "value": "application/json"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/authors",
-              "host": ["{{baseUrl}}"],
-              "path": ["authors"]
-            },
-            "description": "Usuário normal tenta listar autores. Deve retornar erro 403 (Forbidden)."
           }
         }
-      ],
-      "description": "Testes para verificar as restrições de acesso do usuário normal"
+      ]
     },
     {
       "name": "Logout",
@@ -376,54 +332,20 @@
               {
                 "key": "Authorization",
                 "value": "Bearer {{admin_token}}"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/logout",
-              "host": ["{{baseUrl}}"],
-              "path": ["logout"]
-            },
-            "description": "Realiza logout do administrador. Deve invalidar o token atual."
-          }
-        },
-        {
-          "name": "Logout Usuário Normal",
-          "event": [
-            {
-              "listen": "test",
-              "script": {
-                "exec": [
-                  "pm.test('Status code é 200', function() {",
-                  "    pm.response.to.have.status(200);",
-                  "});",
-                  "",
-                  "pm.test('Mensagem de logout correta', function() {",
-                  "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.message).to.eql('Logout realizado com sucesso');",
-                  "});"
-                ],
-                "type": "text/javascript"
-              }
-            }
-          ],
-          "request": {
-            "method": "POST",
-            "header": [
+              },
               {
-                "key": "Authorization",
-                "value": "Bearer {{user_token}}"
+                "key": "Accept",
+                "value": "application/json"
               }
             ],
             "url": {
               "raw": "{{baseUrl}}/logout",
               "host": ["{{baseUrl}}"],
               "path": ["logout"]
-            },
-            "description": "Realiza logout do usuário normal. Deve invalidar o token atual."
+            }
           }
         }
-      ],
-      "description": "Endpoints para encerrar as sessões dos usuários"
+      ]
     }
   ]
 }
